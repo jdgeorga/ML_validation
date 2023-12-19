@@ -3,7 +3,7 @@ import data_loader
 import dft_reader
 import allegro_calculator
 import lammps_calculator
-import analysis
+import analysis.analysis as analysis
 import config
 
 def main():
