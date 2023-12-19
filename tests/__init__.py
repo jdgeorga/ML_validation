@@ -1,3 +1,2 @@
-import sys
-sys.path.append('.')
-sys.path.append('./test_allegro_calculator')
+# import sys
+# sys.path.append('.')

@@ -1,5 +1,8 @@
+import sys
+
+print(sys.path)
 import pytest
-from allegro import AllegroCalculator
+from allegro_model.allegro_calculator import AllegroCalculator
 
 # Sample paths for your test
 xyz_file = "MoS2-Bilayer.xyz"
