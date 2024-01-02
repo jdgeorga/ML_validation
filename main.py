@@ -3,8 +3,9 @@ import data_loader
 import dft_reader
 import allegro_calculator
 import lammps_calculator
-import analysis.analysis as analysis
+import analysis_plots as analysis_plots
 import config
+
 
 def main():
     # Load atomic configurations
@@ -20,10 +21,11 @@ def main():
     dft_results = dft_reader.read_dft_results(config.dft_output_path)
 
     # Compare the results from DFT, ALLEGRO, and LAMMPS
-    comparison_results = analysis.compare_methods(dft_results, allegro_results, lammps_results)
+    comparison_results = analysis_plots.compare_methods(dft_results, allegro_results, lammps_results)
 
     # Optionally, save or display the comparison results
-    analysis.save_comparison_results(comparison_results, config.results_output_path)
+    analysis_plots.save_comparison_results(comparison_results, config.results_output_path)
+
 
 if __name__ == "__main__":
     main()
