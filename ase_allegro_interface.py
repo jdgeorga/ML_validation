@@ -125,7 +125,7 @@ class NeuqIPMultiLayerCalculator(Calculator):
         ]
         self.num_layers = len(self.layer_at_info)
         self.device = device
-        print("init Time",time.time() - t)
+        # print("init Time",time.time() - t)
  
 
     def setup_models(
@@ -200,11 +200,16 @@ class NeuqIPMultiLayerCalculator(Calculator):
         energies = zeros(n_atoms)
         energy = 0
         
+        forces_intralayer = zeros((2,n_atoms,3))
+        energies_intralayer = zeros((2,n_atoms))
+        energy_intralayer = 0
+
         forces_interlayer = zeros((n_atoms, 3))
         energies_interlayer = zeros(n_atoms)
         energy_interlayer = 0
-        print("pre model Time",time.time() - t)
+        # print("pre model Time", time.time() - t)
         for l_id, l in enumerate(self.layer_at_info):
+            # print(l_id,l)
             model, r_max = self.intralayer_model_dict[l_id]
             # print("r_max intralayer", r_max)
 
@@ -268,7 +273,7 @@ class NeuqIPMultiLayerCalculator(Calculator):
                     # data.update{AtomicDataDict.ATOM_TYPE_KEY: at.arrays["atom_types"]}
 
                     out = model(data)
-                    print("intralayer model 2 out Time",time.time() - t)
+                    # print("intralayer model 2 out Time",time.time() - t)
                     results = get_results_from_model_out(out)
                     # at.set_atomic_numbers(tmp_at_nums)
                     
@@ -282,7 +287,14 @@ class NeuqIPMultiLayerCalculator(Calculator):
                     energies[rel_ats] += results["energies"]
                     forces[rel_ats] += results["forces"]
                     energy += results["energy"]
-        print("intralayer model Time",time.time() - t)
+
+                    energies_intralayer[l_id,rel_ats] += results["energies"]
+                    forces_intralayer[l_id,rel_ats] += results["forces"]
+                    energy_intralayer += results["energy"]
+
+        # print("intralayer model Time",time.time() - t)
+
+
         for l_id1, l_id2 in combinations(range(len(self.layer_at_info)), 2):
             l1 = self.layer_at_info[l_id1]
             l2 = self.layer_at_info[l_id2]
@@ -331,7 +343,7 @@ class NeuqIPMultiLayerCalculator(Calculator):
                     data = AtomicData.to_AtomicDataDict(data)
 
                     out = model(data)
-                    print("interlayer model 2 out Time",time.time() - t)
+                    # print("interlayer model 2 out Time",time.time() - t)
 
                     results = get_results_from_model_out(out)
                     
@@ -349,7 +361,7 @@ class NeuqIPMultiLayerCalculator(Calculator):
                     forces_interlayer[rel_ats] += results["forces"]
                     energy_interlayer += results["energy"]
                     
-        print("interlayer model Time",time.time() - t)
+        # print("interlayer model Time",time.time() - t)
 
         self.results = {}
         self.results["energy"] = energy
@@ -358,6 +370,9 @@ class NeuqIPMultiLayerCalculator(Calculator):
         self.results["energy_interlayer"] = energy_interlayer
         self.results["energies_interlayer"] = energies_interlayer
         self.results["forces_interlayer"] = forces_interlayer
+        self.results["energy_intralayer"] = energy_intralayer
+        self.results["energies_intralayer"] = energies_intralayer
+        self.results["forces_intralayer"] = forces_intralayer
 
 
 if __name__ == "__main__":
@@ -377,7 +392,7 @@ if __name__ == "__main__":
     calc.calculate(at)
     #calc.calculate(at, intralayer_chemical_symbol_to_type={"Mo": 0, "S": 1})
 
-    print(calc.results)
+    # print(calc.results)
     """
 
     tmp_at_nums = at.get_atomic_numbers()

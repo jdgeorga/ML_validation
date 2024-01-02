@@ -142,8 +142,7 @@ class LammpsCalculator:
         atom_L2.calc = lammps_L2
         self.intra_L2_energy = atom_L2.get_potential_energy()
         self.intra_L2_forces = atom_L2.get_forces()
-        print(atom_L2.get_forces())
-
+        
     # Getter methods for calculated properties
     def get_intralayer_forces(self):
         """

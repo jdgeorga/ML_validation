@@ -1,7 +1,7 @@
 from ase.io import read
 
 class DFTCalculator:
-    def __init__(self, scf_file_L1, scf_file_L2, total_scf_file, read_dft=True):
+    def __init__(self, total_scf_file, scf_file_L1, scf_file_L2, read_dft=True):
         """
         Initializes the DFTCalculator with paths to the SCF output files for two layers and the total system.
         Optionally, reads data from SCF output files upon initialization.
@@ -11,9 +11,18 @@ class DFTCalculator:
         :param total_scf_file: Path to the SCF output file for the total system.
         :param run_dft: Boolean flag to read data from SCF files during initialization.
         """
-        self.scf_file_L1 = scf_file_L1
-        self.scf_file_L2 = scf_file_L2
         self.total_scf_file = total_scf_file
+        
+        self.scf_file_L1 = None
+        self.scf_file_L2 = None
+        
+        if scf_file_L1:
+            self.scf_file_L1 = scf_file_L1
+        if scf_file_L2:
+            self.scf_file_L2 = scf_file_L2
+
+        
+
 
         # Initialize properties
         self.intra_L1_energy = None
@@ -34,19 +43,21 @@ class DFTCalculator:
         """
         Reads forces and energy data from SCF output files for both layers and the total system.
         """
-        self.read_layer_data(layer='L1')
-        self.read_layer_data(layer='L2')
+
         self.read_total_data()
 
-        intralayer_energy = (self.intra_L1_energy + self.intra_L2_energy)
-        self.inter_energy = self.total_energy - intralayer_energy
+        if self.scf_file_L1 and self.scf_file_L2:
+            self.read_layer_data(layer='L1')
+            self.read_layer_data(layer='L2')
+            intralayer_energy = (self.intra_L1_energy + self.intra_L2_energy)
+            self.inter_energy = self.total_energy - intralayer_energy
 
-        # Calculate the interlayer forces.
-        L1_cond = self.atom_total.positions[:, 2] < self.atom_total.positions[:, 2].mean()
-        L2_cond = self.atom_total.positions[:, 2] >= self.atom_total.positions[:, 2].mean()
-        self.inter_forces = self.total_forces.copy()
-        self.inter_forces[L1_cond] -= self.intra_L1_forces
-        self.inter_forces[L2_cond] -= self.intra_L2_forces
+            # Calculate the interlayer forces.
+            L1_cond = self.atom_total.positions[:, 2] < self.atom_total.positions[:, 2].mean()
+            L2_cond = self.atom_total.positions[:, 2] >= self.atom_total.positions[:, 2].mean()
+            self.inter_forces = self.total_forces.copy()
+            self.inter_forces[L1_cond] -= self.intra_L1_forces
+            self.inter_forces[L2_cond] -= self.intra_L2_forces
 
 
     def read_layer_data(self, layer):
@@ -55,13 +66,13 @@ class DFTCalculator:
 
         :param layer: Specifies the layer ('L1' or 'L2').
         """
-        scf_file = self.scf_file_L1 if layer == 'L1' else self.scf_file_L2
-        atom_layer = read(scf_file, format='espresso-out')
 
         if layer == 'L1':
+            atom_layer = read(self.scf_file_L1, format='espresso-out')
             self.intra_L1_energy = atom_layer.get_total_energy()
             self.intra_L1_forces = atom_layer.get_forces()
         elif layer == 'L2':
+            atom_layer = read(self.scf_file_L2, format='espresso-out')
             self.intra_L2_energy = atom_layer.get_total_energy()
             self.intra_L2_forces = atom_layer.get_forces()
 
